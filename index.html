@@ -10,8 +10,11 @@
 <body>
     <div id="container">
         <div id="titles">
-            <h1>TrackToon</h1>
-            <p>Acompanhe seus Mangás e Manhwas favoritos</p>
+            <div class="title-theme">
+                <h1>TrackToon</h1>
+                <button id="btn-theme"><i class="fa-regular fa-moon"></i></button>
+            </div>
+            <p>Acompanhe seus Mangás e Manhwas favoritos</p>  
         </div>
         <div id="user-inputs">
             <form id="form">
@@ -19,9 +22,14 @@
                 <input type="url" id="url" placeholder="Cole o link para leitura">
                 <textarea id="review" placeholder="Adicione seu review (se tiver!)"></textarea>
                 <div class="read-status">
-                    <input type="radio" name="status" id="unread" checked> Não lido
-                    <input type="radio" name="status" id="read"> Lido
-                    <input type="radio" name="status" id="to-read"> A ler
+                    <input type="radio" name="status" id="unread" value="Não lido" checked>
+                    <label for="unread">Não lido</label>
+
+                    <input type="radio" name="status" id="to-read" value="Lendo">
+                    <label for="to-read">Lendo</label>
+
+                    <input type="radio" name="status" id="read" value="Lido">
+                    <label for="read">Lido</label>
                 </div>
                 <div class="form-buttons">
                     <button type="submit" id="submit-btn">Adicionar</button>
@@ -29,9 +37,17 @@
             </form>
         </div>
 
-        <div class="cards-container"></div>
-    </div>
+        <div class="filter-btns">
+            <button data-filter="todos">Todos</button>
+            <button data-filter="não lido">Não lidos</button>
+            <button data-filter="lendo">Lendo</button>
+            <button data-filter="lido">Lidos</button>
+        </div>
 
+        <div class="cards-container">
+            <p id="empty-message" class="hidden-message">Nenhum mangá/manhwa encontrado.</p>
+        </div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>

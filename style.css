@@ -4,6 +4,24 @@
     box-sizing: border-box;
 }
 
+:root {
+    --fundo: rgb(245, 224, 228);
+    --rosa-claro: pink;
+    --rosa-escuro: palevioletred;
+    --texto: black;
+    --input-box: rgb(255, 248, 250);
+    --placeholder: rgb(196, 191, 191);
+}
+
+.dark-mode {
+    --fundo: #2c2544;
+    --rosa-claro: #f495b7;
+    --rosa-escuro: #cd4583;
+    --texto: white;
+    --input-box: palevioletred;
+    --placeholder: pink;
+}
+
 body {
     font-size: 16px;
     width: 100vw;
@@ -15,12 +33,33 @@ body {
     width: 100%;
     min-height: 100vh;
     height: auto;
-    background-color: rgb(245, 224, 228);
+    background-color: var(--fundo);
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: 2rem;
     padding: 2rem 0;
+}
+
+#titles {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    width: 80%;
+    color: var(--texto);
+}
+
+.title-theme {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.title-theme #btn-theme {
+    position: absolute;
+    top: 0;
+    right: 0;
 }
 
 #user-inputs {
@@ -35,31 +74,46 @@ body {
     width: 100%;
     display: flex;
     flex-direction: column;
+    gap: 0.5rem;
+    color: var(--texto);
 }
 
 #form input, #form textarea {
     margin-bottom: 0.5rem;
     padding: 0.25rem;
-    border: 0.1rem solid palevioletred;
+    border: 0.1rem solid var(--rosa-escuro);
     border-radius: 0.5rem;
     resize: none;
+    background-color: var(--input-box);
+}
+
+#form input::placeholder, #form textarea::placeholder {
+    color: var(--placeholder);
+    font-style: italic;
+}
+
+input[type="radio"], input[type="checkbox"] {
+  accent-color: var(--rosa-escuro);
+}
+
+input[type="radio"]:hover, input[type="checkbox"]:hover {
+  cursor: pointer;
 }
 
 #form textarea {
     scrollbar-width: thin;
-    scrollbar-color: palevioletred pink;
+    scrollbar-color: var(--rosa-escuro) var(--rosa-claro);
 }
 
 #form button {
     width: 7rem;
-    background-color: white;
-    border: 0.1rem solid pink;
+    border: 0.1rem solid var(--rosa-claro);
     transition: all .1s ease-in-out;
 }
 
 #form button:hover {
-    background-color: pink;
-    color: black;
+    background-color: var(--rosa-claro);
+    color: var(--texto);
     transition: all .1s ease-in-out;
 }
 
@@ -82,7 +136,7 @@ body {
 .card-front, .card-back {
     width: 15rem;
     height: 10.5rem;
-    background-color: pink;
+    background-color: var(--rosa-claro);
     border-radius: 1rem;
     display: flex;
     justify-content: space-between;
@@ -105,6 +159,8 @@ body {
 .card-front .left img {
     width: 100%;
     height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .card-front .right {
@@ -122,17 +178,19 @@ body {
     gap: 0.5rem;
 }
 
-.right .title-and-edit button.edit {
+.right .title-and-edit button.edit,
+.title-theme button#btn-theme {
     background-color: transparent;
     border: none;
     cursor: pointer;
     font-size: 1rem;
-    color: palevioletred;
+    color: var(--rosa-escuro);
     transition: all .1s ease-in-out;
 }
 
-.right .title-and-edit button.edit:hover {
-    color: black;
+.right .title-and-edit button.edit:hover,
+.title-theme button#btn-theme:hover {
+    color: var(--texto);
 }
 
 .card-front .right h3,
@@ -140,24 +198,49 @@ body {
     font-size: 1rem;
     max-height: 4rem;
     overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: auto;
     scrollbar-width: none;
 }
 
 .card-front .right p,
 .card-back p {
     font-size: 0.75rem;
-    overflow-y: scroll;
+    overflow-x: hidden;
+    overflow-y: auto;
     scrollbar-width: thin;
-    scrollbar-color: palevioletred pink;
+    scrollbar-color: var(--rosa-escuro) var(--rosa-claro);
     text-align: justify;
     padding-right: 0.2rem;
+    word-break: break-all;
+}
+
+.card-back p {
+    flex: 1;
 }
 
 .card-back {
     display: flex;
     flex-direction: column;
-    background-color: pink;
+    background-color: var(--rosa-claro);
+    width: 100%;
+    overflow: hidden;
+}
+
+.read-status {
+    display: flex;
+    gap: 0.5rem;
+    line-height: 0.9;
+}
+
+p.status {
+    padding: 0.1rem 0.4rem;
+    background-color: var(--rosa-escuro);
+    color: white;
+    font-size: 0.7rem;
+    border-radius: 0.4rem;
+    text-align: center;
+    max-height: 1rem;
+    overflow: hidden;
 }
 
 .buttons {
@@ -166,12 +249,20 @@ body {
     gap: 0.25rem;
 }
 
-.buttons button, #form button, button.go-back {
+.buttons button, #form button, 
+button.go-back, .filter-btns button {
     padding: 0.1rem 0.5rem;
-    border: 0.1rem solid palevioletred;
+    border: 0.1rem solid var(--rosa-escuro);
     border-radius: 0.5rem;
     cursor: pointer;
     transition: all .1s ease-in-out;
+}
+
+.filter-btns {
+    width: 80%;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
 }
 
 .link-read a {
@@ -181,8 +272,24 @@ body {
 }
 
 button:hover, .link-read a:hover {
-    background-color: palevioletred;
+    background-color: var(--rosa-escuro);
     color: white;
+}
+
+.hidden-card, .hidden-message {
+    display: none;
+}
+
+.active {
+    background-color: var(--rosa-escuro);
+    color: white;
+}
+
+#empty-message {
+    text-align: center;
+    margin-top: 1rem;
+    color: #888;
+    font-style: italic;
 }
 
 /* toda a lógica do flip aqui! */
@@ -219,4 +326,8 @@ button:hover, .link-read a:hover {
 
 .flip.flipped .card-back {
     transform: rotateY(0deg);
+}
+
+html, body, body * {
+    transition: all .2s ease;
 }

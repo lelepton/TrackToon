@@ -1,6 +1,9 @@
 // criando um array pra armazenar os manhwas
 const savedManhwas = [];
 
+// criando variável para armazenar o filtro atual (inicializado com o todos)
+let currentFilter = 'todos';
+
 // checo primeiro se, ao carregar a pág, já existem mangás ou manhwas salvos no local storage!
 // se existirem, eu carrego eles primeiro :)
 document.addEventListener('DOMContentLoaded', () => {
@@ -8,13 +11,92 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (currentLocalStorage) {
         currentLocalStorage.forEach((manhwa, index) => {
+            savedManhwas.push(manhwa);
+
             // fazendo o destructuring do objeto!!
-            const { mangaTitle, mangaCover, mangaSynopsis, mangaUrl, mangaReview } = manhwa;
+            const { mangaTitle, mangaCover, mangaSynopsis, mangaUrl, mangaReview, mangaStatus } = manhwa;
 
             // chamando a função pra criar esses elementos de novo!!
-            createCard(mangaTitle, mangaCover, mangaSynopsis, mangaUrl, mangaReview, index);
+            createCard(mangaTitle, mangaCover, mangaSynopsis, mangaUrl, mangaReview, mangaStatus, index);
         });
     };
+});
+
+// pego o botão de troca de tema!! e depois adiciono evento nele!
+const btnTheme = document.getElementById('btn-theme');
+btnTheme.addEventListener('click', () => {
+    let mode = document.body.classList.contains('dark-mode') ? 'dark' : 'light';
+
+    if (mode === 'dark') {
+        document.body.classList.remove('dark-mode');
+        btnTheme.innerHTML = '<i class="fa-regular fa-moon"></i>';
+    } else {
+        document.body.classList.add('dark-mode');
+        btnTheme.innerHTML = '<i class="fa-regular fa-sun"></i>'
+    };   
+});
+
+// função que filtra os cards e só mostra os que o usuário quer ver!
+function filterCards(filter) {
+    const cards = document.querySelectorAll('.flip');
+    const emptyMessage = document.getElementById('empty-message');
+
+    let visible = 0; // crio um contador para guardar quantos estão ativos
+
+    cards.forEach(card => {
+        const status = card.dataset.status.toLowerCase();
+
+        // se o valor do filtro (que será o dataset) for todos, então tiro a classe
+        if (filter === 'todos') {
+            card.classList.remove('hidden-card');
+            visible++; // se tiver ativo, eu aumento o contador
+            return;
+        }
+
+        // se for outro, ai vai depender do status
+        if (status === filter) {
+            card.classList.remove('hidden-card');
+            visible++;
+        } else {
+            card.classList.add('hidden-card');
+        }
+    });
+
+    // se o contador for igual a zero, então não tem card nenhum, logo mostra a mensagem correspondente
+    if (visible === 0) {
+        emptyMessage.textContent = getEmptyMessage(filter);
+        emptyMessage.classList.remove('hidden-message');
+    } else {
+        emptyMessage.classList.add('hidden-message');
+    };
+};
+
+function getEmptyMessage (filter) {
+    switch (filter) {
+        case 'todos':
+            return 'Nenhum mangá/manhwa adicionado.';
+        case 'lido':
+            return 'Nenhum mangá/manhwa lido.';
+        case 'não lido':
+            return 'Nenhum mangá/manhwa não lido.';
+        case 'lendo':
+            return 'Nenhum mangá/manhwa em leitura.';
+        default:
+            return 'Nenhum mangá/manhwa encontrado.';
+    };
+};
+
+// adiciono evento aos botões de filtro!! + classe active para estilização css
+const filterButtons = document.querySelectorAll('.filter-btns button');
+filterButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        filterButtons.forEach(button => button.classList.remove('active')); // removo a classe de todos pra garantir
+
+        btn.classList.add('active'); // depois adiciono a classe só no clicado atualmente
+
+        currentFilter = btn.dataset.filter; // salvo o filtro atual baseado no dataset
+        filterCards(currentFilter); // depois chamo a função de filtro baseado no filtro atual
+    });
 });
 
 // aqui eu pego os valores do formulário, impeço o comportamento padrão
@@ -27,9 +109,10 @@ form.addEventListener('submit', (e) => {
     const userChoice = document.getElementById('choice').value;
     const url = document.getElementById('url').value;
     const review = document.getElementById('review').value;
+    const status = document.querySelector('input[name="status"]:checked').value;
 
     if (userChoice && url) {
-        fetchAPI(userChoice, url, review);
+        fetchAPI(userChoice, url, review, status);
         form.reset();
     };
 });
@@ -37,7 +120,7 @@ form.addEventListener('submit', (e) => {
 // aqui eu faço a requisição para a API propriamente dita. Uso o endpoint
 // de pesquisa para obter infos como o título, a capa e a sinopse
 // obs: usando async/await para deixar mais limpo e legível
-async function fetchAPI(userChoice, url, review) {
+async function fetchAPI(userChoice, url, review, status) {
     try {
         const res = await fetch(`https://api.jikan.moe/v4/manga?q=${userChoice}&limit=1`);
 
@@ -52,17 +135,20 @@ async function fetchAPI(userChoice, url, review) {
         const synopsis = data.data[0].synopsis;
 
         // salvo no localStorage tb!
-        const index = saveToLocalStorage(title, cover, synopsis, url, review);
+        const index = saveToLocalStorage(title, cover, synopsis, url, review, status);
 
         // depois chamo a função que cria o card e o coloca na tela
-        createCard(title, cover, synopsis, url, review, index);
+        createCard(title, cover, synopsis, url, review, status, index);
+
+        // depois chamo a função pra filtrar!!
+        filterCards(currentFilter);
 
     } catch (error) {
         console.error('Erro ao buscar os dados da API:', error);
     }
 };
 
-function saveToLocalStorage(title, cover, synopsis, url, review, index) {
+function saveToLocalStorage(title, cover, synopsis, url, review, status) {
     // crio um objeto pra armazenar todos os valores e depois adiciono ao local storage
     const everyUserInput = {};
     everyUserInput.mangaTitle = title;
@@ -70,6 +156,7 @@ function saveToLocalStorage(title, cover, synopsis, url, review, index) {
     everyUserInput.mangaSynopsis = synopsis;
     everyUserInput.mangaUrl = url;
     everyUserInput.mangaReview = review;
+    everyUserInput.mangaStatus = status;
 
     savedManhwas.push(everyUserInput);
     localStorage.setItem('manhwas', JSON.stringify(savedManhwas));
@@ -79,7 +166,7 @@ function saveToLocalStorage(title, cover, synopsis, url, review, index) {
     return savedManhwas.length - 1; 
 };
 
-function createCard(title, cover, synopsis, url, review, index) {
+function createCard(title, cover, synopsis, url, review, status, index) {
     const cardsContainer = document.querySelector('.cards-container');
     
     // crio a div do card
@@ -152,11 +239,6 @@ function createCard(title, cover, synopsis, url, review, index) {
     reviewBtn.textContent = 'Opinião';
     reviewBtn.classList.add('review');
 
-    // adiciono evento no botão de opinião. Ele que disparará o efeito de flip!!
-    reviewBtn.addEventListener('click', () => {
-        flipped.classList.add('flipped');
-    });
-
     // aqui eu adiciono os botões na div dos botões
     buttons.appendChild(readMoreBtn);
     buttons.appendChild(reviewBtn);
@@ -175,8 +257,16 @@ function createCard(title, cover, synopsis, url, review, index) {
     // adiciono um dataset com o indice recebido que será usado na parte de edição e remoção
     flipped.dataset.index = index;
 
+    // adiciono também um dataset para o status (vai determinar se o card é mostrado ou não)
+    flipped.dataset.status = status;
+
     // adiciono o div de flipped (que terá parte da frente e trás do card)
     flipped.appendChild(cardFront);
+
+    // adiciono evento no botão de opinião. Ele que disparará o efeito de flip!!
+    reviewBtn.addEventListener('click', () => {
+        flipped.classList.add('flipped');
+    });
 
     // crio a parte de trás do card
     const cardBack = document.createElement('div');
@@ -187,6 +277,11 @@ function createCard(title, cover, synopsis, url, review, index) {
 
     const backParagraph = document.createElement('p');
     backParagraph.textContent = review || "Nenhum comentário ainda :(";
+
+    // crio o círculozinho que conterá o status atual do manhwa
+    const readStatus = document.createElement('p');
+    readStatus.classList.add('status');
+    readStatus.textContent = status;
 
     const goBackBtn = document.createElement('button');
     goBackBtn.textContent = 'Voltar';
@@ -202,6 +297,7 @@ function createCard(title, cover, synopsis, url, review, index) {
 
     cardBack.appendChild(backTitle);
     cardBack.appendChild(backParagraph);
+    cardBack.appendChild(readStatus);
     cardBack.appendChild(goBackBtn);
 
     // aqui eu adiciono o card no container dos cards
@@ -216,6 +312,10 @@ function editCard(card, index) {
     document.getElementById('choice').value = front.querySelector('h3').textContent;
     document.getElementById('url').value = front.querySelector('.link-read a').href;
     document.getElementById('review').value = back.querySelector('p').textContent;
+    
+    const currentStatus = back.querySelector('.status').textContent.trim();
+
+    document.querySelector(`input[name="status"][value="${currentStatus}"]`).checked = true;
 
     // crio o botão de submissão do form (terei que adicioná-lo dinamicamente)
     const submitButton = document.createElement('button');
@@ -239,15 +339,18 @@ function editCard(card, index) {
         const newTitle = document.getElementById('choice').value;
         const newUrl = document.getElementById('url').value;
         const newReview = document.getElementById('review').value;
+        const newStatus = document.querySelector('input[name="status"]:checked').value;
 
         front.querySelector('h3').textContent = newTitle;
         front.querySelector('.link-read a').href = newUrl;
         back.querySelector('p').textContent = newReview;
+        back.querySelector('.status').textContent = newStatus;
 
         // atualizo os valores c/ a ajuda do indice
         savedManhwas[index].mangaTitle = newTitle;
         savedManhwas[index].mangaUrl = newUrl;
         savedManhwas[index].mangaReview = newReview;
+        savedManhwas[index].mangaStatus = newStatus;
 
         localStorage.setItem('manhwas', JSON.stringify(savedManhwas)); 
         

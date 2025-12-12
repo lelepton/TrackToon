@@ -9,11 +9,20 @@
 </head>
 <body>
     <div id="container">
+        <div id="titles">
+            <h1>TrackToon</h1>
+            <p>Acompanhe seus Mangás e Manhwas favoritos</p>
+        </div>
         <div id="user-inputs">
             <form id="form">
                 <input type="text" id="choice" placeholder="Digite o nome do Manhwa ou Mangá" required>
                 <input type="url" id="url" placeholder="Cole o link para leitura">
                 <textarea id="review" placeholder="Adicione seu review (se tiver!)"></textarea>
+                <div class="read-status">
+                    <input type="radio" name="status" id="unread" checked> Não lido
+                    <input type="radio" name="status" id="read"> Lido
+                    <input type="radio" name="status" id="to-read"> A ler
+                </div>
                 <div class="form-buttons">
                     <button type="submit" id="submit-btn">Adicionar</button>
                 </div> 

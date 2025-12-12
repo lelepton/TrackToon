@@ -9,10 +9,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (currentLocalStorage) {
         currentLocalStorage.forEach((manhwa, index) => {
             // fazendo o destructuring do objeto!!
-            const { mangaTitle, mangaCover, mangaSynopsis, mangaUrl, mangaReview } = manhwa;
+            const { mangaTitle, mangaCover, mangaSynopsis, mangaUrl, mangaReview, mangaStatus } = manhwa;
 
             // chamando a função pra criar esses elementos de novo!!
-            createCard(mangaTitle, mangaCover, mangaSynopsis, mangaUrl, mangaReview, index);
+            createCard(mangaTitle, mangaCover, mangaSynopsis, mangaUrl, mangaReview, mangaStatus, index);
         });
     };
 });
@@ -27,9 +27,10 @@ form.addEventListener('submit', (e) => {
     const userChoice = document.getElementById('choice').value;
     const url = document.getElementById('url').value;
     const review = document.getElementById('review').value;
+    const status = document.querySelector('input[name="status"]:checked').value;
 
     if (userChoice && url) {
-        fetchAPI(userChoice, url, review);
+        fetchAPI(userChoice, url, review, status);
         form.reset();
     };
 });
@@ -37,7 +38,7 @@ form.addEventListener('submit', (e) => {
 // aqui eu faço a requisição para a API propriamente dita. Uso o endpoint
 // de pesquisa para obter infos como o título, a capa e a sinopse
 // obs: usando async/await para deixar mais limpo e legível
-async function fetchAPI(userChoice, url, review) {
+async function fetchAPI(userChoice, url, review, status) {
     try {
         const res = await fetch(`https://api.jikan.moe/v4/manga?q=${userChoice}&limit=1`);
 
@@ -52,17 +53,17 @@ async function fetchAPI(userChoice, url, review) {
         const synopsis = data.data[0].synopsis;
 
         // salvo no localStorage tb!
-        const index = saveToLocalStorage(title, cover, synopsis, url, review);
+        const index = saveToLocalStorage(title, cover, synopsis, url, review, status);
 
         // depois chamo a função que cria o card e o coloca na tela
-        createCard(title, cover, synopsis, url, review, index);
+        createCard(title, cover, synopsis, url, review, status, index);
 
     } catch (error) {
         console.error('Erro ao buscar os dados da API:', error);
     }
 };
 
-function saveToLocalStorage(title, cover, synopsis, url, review, index) {
+function saveToLocalStorage(title, cover, synopsis, url, review, status) {
     // crio um objeto pra armazenar todos os valores e depois adiciono ao local storage
     const everyUserInput = {};
     everyUserInput.mangaTitle = title;
@@ -70,6 +71,7 @@ function saveToLocalStorage(title, cover, synopsis, url, review, index) {
     everyUserInput.mangaSynopsis = synopsis;
     everyUserInput.mangaUrl = url;
     everyUserInput.mangaReview = review;
+    everyUserInput.mangaStatus = status;
 
     savedManhwas.push(everyUserInput);
     localStorage.setItem('manhwas', JSON.stringify(savedManhwas));
@@ -79,7 +81,7 @@ function saveToLocalStorage(title, cover, synopsis, url, review, index) {
     return savedManhwas.length - 1; 
 };
 
-function createCard(title, cover, synopsis, url, review, index) {
+function createCard(title, cover, synopsis, url, review, status, index) {
     const cardsContainer = document.querySelector('.cards-container');
     
     // crio a div do card
@@ -188,6 +190,11 @@ function createCard(title, cover, synopsis, url, review, index) {
     const backParagraph = document.createElement('p');
     backParagraph.textContent = review || "Nenhum comentário ainda :(";
 
+    // crio o círculozinho que conterá o status atual do manhwa
+    const readStatus = document.createElement('div');
+    readStatus.innerHTML = `<p>status</p>`;
+    readStatus.classList.add('status');
+
     const goBackBtn = document.createElement('button');
     goBackBtn.textContent = 'Voltar';
     goBackBtn.classList.add('go-back');
@@ -202,6 +209,7 @@ function createCard(title, cover, synopsis, url, review, index) {
 
     cardBack.appendChild(backTitle);
     cardBack.appendChild(backParagraph);
+    cardBack.appendChild(readStatus);
     cardBack.appendChild(goBackBtn);
 
     // aqui eu adiciono o card no container dos cards
@@ -216,6 +224,18 @@ function editCard(card, index) {
     document.getElementById('choice').value = front.querySelector('h3').textContent;
     document.getElementById('url').value = front.querySelector('.link-read a').href;
     document.getElementById('review').value = back.querySelector('p').textContent;
+    
+    const currentStatus = back.querySelector('.status').textContent.trim().toLowerCase();
+
+    // aqui eu mapeio o texto do status para o id do radio
+    const map = {
+        'não lido': 'unread',
+        'lido': 'read',
+        'a ler': 'to-read'
+    };
+
+    // e depois marco o correto baseado no status atual do usuário
+    document.getElementById(map[currentStatus]).checked = true;
 
     // crio o botão de submissão do form (terei que adicioná-lo dinamicamente)
     const submitButton = document.createElement('button');
@@ -239,15 +259,18 @@ function editCard(card, index) {
         const newTitle = document.getElementById('choice').value;
         const newUrl = document.getElementById('url').value;
         const newReview = document.getElementById('review').value;
+        const newStatus = document.querySelector('input[name="status"]:checked').id;
 
         front.querySelector('h3').textContent = newTitle;
         front.querySelector('.link-read a').href = newUrl;
         back.querySelector('p').textContent = newReview;
+        back.querySelector('.status').textContent = newStatus;
 
         // atualizo os valores c/ a ajuda do indice
         savedManhwas[index].mangaTitle = newTitle;
         savedManhwas[index].mangaUrl = newUrl;
         savedManhwas[index].mangaReview = newReview;
+        savedManhwas[index].mangaStatus = newStatus;
 
         localStorage.setItem('manhwas', JSON.stringify(savedManhwas)); 
         

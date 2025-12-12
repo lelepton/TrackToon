@@ -23,6 +23,10 @@ body {
     padding: 2rem 0;
 }
 
+#titles {
+    text-align: center;
+}
+
 #user-inputs {
     width: 80%;
     height: 30%;
@@ -35,6 +39,7 @@ body {
     width: 100%;
     display: flex;
     flex-direction: column;
+    gap: 0.5rem;
 }
 
 #form input, #form textarea {
@@ -61,6 +66,19 @@ body {
     background-color: pink;
     color: black;
     transition: all .1s ease-in-out;
+}
+
+.read-status {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.status {
+    width: 3rem;
+    padding: 0.1rem;
+    background-color: palevioletred;
+    border: 0.1rem solid white;
+    border-radius: 1rem;
 }
 
 .form-buttons {
